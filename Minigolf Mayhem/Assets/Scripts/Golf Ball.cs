@@ -1,65 +1,81 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GolfBall : MonoBehaviour
 {
-    public float rotationSpeed = 100.0f;
-    public float maxPuttPower = 2.0f;
-    public float puttPowerIncrementSpeed = 5.0f;
+    public float rotationIncrement = 100f;
+    public float maxPuttPower = 1;
+    public float puttPowerIncrementSpeed = 1;
     private float puttPower = 0.0f;
-    private new GameObject camera;
+    private bool ballMoving = false;
+    private Rigidbody rb;
+    public TextMeshProUGUI puttPowerText;
+
     // Start is called before the first frame update
     void Start()
     {
-        camera = GameObject.Find("Main Camera");
-        if (camera == null )
-        {
-            Debug.LogError("Camera not found in scene");
-        }
+        rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        float rotationAmount = 0f;
+        float rotationAmount = 0;
 
-        // Check for input to rotate left
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+        if (rb.velocity.magnitude > 0.1)
         {
-            rotationAmount = -rotationSpeed;
-            if (Input.GetKey(KeyCode.LeftShift)) rotationAmount = -rotationSpeed/4;
-        }
-        // Check for input to rotate right
-        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            ballMoving = true;
+        } else
         {
-            rotationAmount = rotationSpeed;
-            if (Input.GetKey(KeyCode.LeftShift)) rotationAmount = rotationSpeed / 4;
+            ballMoving = false; 
         }
 
-        // Apply rotation to the parent object
-        transform.Rotate(Vector3.up * rotationAmount * Time.deltaTime);
-        if (camera != null)
+        if (!ballMoving)
         {
-            camera.transform.Rotate(Vector3.up * rotationAmount * Time.deltaTime);
-            camera.transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z - 1.2f);
-        }
+            // rotate left
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    rotationAmount = -rotationIncrement / 4;
+                } else
+                {
+                    rotationAmount = -rotationIncrement;
+                }
+                transform.Rotate(0, rotationAmount * Time.deltaTime, 0);
+            }
+            // rotate right
+            else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    rotationAmount = rotationIncrement / 4;
+                }
+                else
+                {
+                    rotationAmount = rotationIncrement;
+                }
+                transform.Rotate(0, rotationAmount * Time.deltaTime, 0);
+            }
 
-        // Check for space bar input to control putt power
-        if (Input.GetKey(KeyCode.Space))
-        {
-            if (puttPower < maxPuttPower) puttPower += puttPowerIncrementSpeed * Time.deltaTime;
-        }
+            // Check for space bar input to control putt power
+            if (Input.GetKey(KeyCode.Space))
+            {
+                if (puttPower < maxPuttPower) puttPower += puttPowerIncrementSpeed * Time.deltaTime;
+            }
 
-        // Check for space bar release to perform the putt
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
-            puttPower = 0.0f;
-        }
+            // Check for space bar release to perform the putt
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+                GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
+                puttPower = 0.0f;
+            }
 
+            puttPowerText.text = "Putt Power: " + puttPower;
+
+        }
     }
-
-
 }
