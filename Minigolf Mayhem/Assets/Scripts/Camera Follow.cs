@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text.RegularExpressions;
 
 public class CameraFollow : MonoBehaviour
 {
@@ -10,7 +11,8 @@ public class CameraFollow : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        golfBall = GameObject.Find("Golf Ball");
+        string name = transform.name;
+        golfBall = GameObject.Find("Golf Ball " + ExtractNumbers(name));
     }
 
     // Update is called once per frame
@@ -19,7 +21,7 @@ public class CameraFollow : MonoBehaviour
         // Calculate the camera position relative to the ball's position and rotation
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         float zoomAmount = scroll * zoomSpeed;
-        if (cameraOffset.z + zoomAmount < -0.5 && cameraOffset.y - zoomAmount > 0.1)
+        if (cameraOffset.z + zoomAmount < -0.5 && cameraOffset.y - zoomAmount > 0.1 && cameraOffset.y - zoomAmount < 3.6 && cameraOffset.z + zoomAmount > -6.7)
         {
             cameraOffset.z += zoomAmount;
             cameraOffset.y -= zoomAmount/2;
@@ -27,5 +29,23 @@ public class CameraFollow : MonoBehaviour
         Vector3 desiredCameraPosition = golfBall.transform.position + golfBall.transform.TransformDirection(cameraOffset);
         transform.position = Vector3.Lerp(transform.position, desiredCameraPosition, Time.deltaTime * 20);
         transform.LookAt(golfBall.transform.position);
+    }
+
+    public static string ExtractNumbers(string input)
+    {
+        // Define a regular expression pattern that matches digits
+        string pattern = @"\d+";
+
+        // Use Regex.Match to find all matches of the pattern in the input string
+        MatchCollection matches = Regex.Matches(input, pattern);
+
+        // Concatenate the matched numbers into a single string
+        string result = "";
+        foreach (Match match in matches)
+        {
+            result += match.Value;
+        }
+
+        return result;
     }
 }
