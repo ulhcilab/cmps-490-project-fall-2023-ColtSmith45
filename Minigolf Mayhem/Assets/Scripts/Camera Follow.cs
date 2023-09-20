@@ -19,7 +19,11 @@ public class CameraFollow : MonoBehaviour
         // Calculate the camera position relative to the ball's position and rotation
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         float zoomAmount = scroll * zoomSpeed;
-        if (cameraOffset.z + zoomAmount < -0.5) cameraOffset.z += zoomAmount;
+        if (cameraOffset.z + zoomAmount < -0.5 && cameraOffset.y - zoomAmount > 0.1)
+        {
+            cameraOffset.z += zoomAmount;
+            cameraOffset.y -= zoomAmount/2;
+        }
         Vector3 desiredCameraPosition = golfBall.transform.position + golfBall.transform.TransformDirection(cameraOffset);
         transform.position = Vector3.Lerp(transform.position, desiredCameraPosition, Time.deltaTime * 20);
         transform.LookAt(golfBall.transform.position);

@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Golf Ball.cs" />
+    <Compile Include="Assets\Scripts\Hole.cs" />
     <Compile Include="Assets\Scripts\Camera Follow.cs" />
   </ItemGroup>
   <ItemGroup>

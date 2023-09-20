@@ -11,6 +11,11 @@ public class GolfBall : MonoBehaviour
     public float puttPowerIncrementSpeed = 1;
     private float puttPower = 0.0f;
     private bool ballMoving = false;
+    private int totalPutts = 0;
+    private float totalMTraveled = 0;
+    private int totalResets = 0;
+    private Vector3 prevPosition;
+    private Vector3 newPosition;
     private Rigidbody rb;
     public TextMeshProUGUI puttPowerText;
 
@@ -18,6 +23,7 @@ public class GolfBall : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        prevPosition = transform.position;
     }
 
     // Update is called once per frame
@@ -35,6 +41,13 @@ public class GolfBall : MonoBehaviour
 
         if (!ballMoving)
         {
+            newPosition = transform.position;
+            if (newPosition != prevPosition)
+            {
+                totalMTraveled += Vector3.Distance(newPosition, prevPosition);
+                prevPosition = newPosition;
+            }
+
             // rotate left
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
             {
@@ -64,17 +77,35 @@ public class GolfBall : MonoBehaviour
             // Check for space bar input to control putt power
             if (Input.GetKey(KeyCode.Space))
             {
-                if (puttPower < maxPuttPower) puttPower += puttPowerIncrementSpeed * Time.deltaTime;
+                if (puttPower + puttPowerIncrementSpeed * Time.deltaTime > maxPuttPower) 
+                {
+                    puttPower = maxPuttPower;
+                }
+                else
+                {
+                    puttPower += puttPowerIncrementSpeed * Time.deltaTime;
+                }
             }
 
             // Check for space bar release to perform the putt
             if (Input.GetKeyUp(KeyCode.Space))
             {
+                Vector3 prevPosition = transform.position;
                 GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
+                totalPutts++;
                 puttPower = 0.0f;
             }
 
             puttPowerText.text = "Putt Power: " + puttPower;
+
+
+
+
+            if (Input.GetKeyUp(KeyCode.L))
+            {
+                Debug.Log("Total Putts: " + totalPutts);
+                Debug.Log("Total Distance Traveled: " + totalMTraveled + "m");
+            }
 
         }
     }
