@@ -21,7 +21,7 @@ public class CameraFollow : MonoBehaviour
         // Calculate the camera position relative to the ball's position and rotation
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         float zoomAmount = scroll * zoomSpeed;
-        if (cameraOffset.z + zoomAmount < -0.5 && cameraOffset.y - zoomAmount > 0.1 && cameraOffset.y - zoomAmount < 3.6 && cameraOffset.z + zoomAmount > -6.7)
+        if (cameraOffset.y - zoomAmount > 0.1 && cameraOffset.y - zoomAmount < 3.6)
         {
             cameraOffset.z += zoomAmount;
             cameraOffset.y -= zoomAmount/2;

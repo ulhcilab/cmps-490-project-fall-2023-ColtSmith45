@@ -14,6 +14,10 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         FillCameraPlayerTuples();
+        foreach (var cameraPlayerTuple in cameraPlayerTuples)
+        {
+            cameraPlayerTuple.Item2.SetActive(false);
+        }
         Shuffle(cameraPlayerTuples);
         nextTurn();
 
@@ -72,6 +76,7 @@ public class TurnManager : MonoBehaviour
         {
             if (i == turn)
             {
+                cameraPlayerTuples[i - 1].Item2.SetActive(true);
                 cameraPlayerTuples[i - 1].Item1.enabled = true;
                 playerName.text = cameraPlayerTuples[i - 1].Item2.name;
                 cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().isTurn = true;
