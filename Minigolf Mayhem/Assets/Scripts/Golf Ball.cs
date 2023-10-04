@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GolfBall : MonoBehaviour
 {
@@ -13,22 +14,26 @@ public class GolfBall : MonoBehaviour
     public int puttCount = 0;
     private bool ballMoving = false;
     private int totalPutts = 0;
-    private float totalMTraveled = 0;
-    private int totalResets = 0;
+    public int putts = 0;
     public bool isTurn = false;
+    public bool finishedHole = false;
     public float turnTime = 0;
-    private Vector3 prevPosition;
-    private Vector3 newPosition;
     private Rigidbody rb;
     public TextMeshProUGUI puttPowerText;
+    public TextMeshProUGUI puttText;
     public GameObject turnManager;
+    public GameObject puttPowerBar;
+    private static Image puttPowerBarImg;
+    public GameObject directionArrows;
 
     // Start is called before the first frame update
     void Start()
     {
-        turnManager = GameObject.Find("Turn Manager");
+        directionArrows.SetActive(false);
+        puttPowerBarImg = puttPowerBar.transform.GetComponent<Image>();
+        puttText.enabled = false;
         rb = GetComponent<Rigidbody>();
-        prevPosition = transform.position;
+        SetPuttPowerBarValue(puttPower);
     }
 
     // Update is called once per frame
@@ -50,13 +55,7 @@ public class GolfBall : MonoBehaviour
 
             if (!ballMoving)
             {
-                newPosition = transform.position;
-                if (newPosition != prevPosition)
-                {
-                    totalMTraveled += Vector3.Distance(newPosition, prevPosition);
-                    prevPosition = newPosition;
-                }
-
+                directionArrows.SetActive(true);
                 // rotate left
                 if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
                 {
@@ -95,6 +94,7 @@ public class GolfBall : MonoBehaviour
                     {
                         puttPower += puttPowerIncrementSpeed * Time.deltaTime;
                     }
+                    SetPuttPowerBarValue(puttPower);
                 }
 
                 // Check for space bar release to perform the putt
@@ -104,7 +104,9 @@ public class GolfBall : MonoBehaviour
                     GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
                     puttCount -= 1;
                     totalPutts++;
+                    putts++;
                     puttPower = 0.0f;
+                    SetPuttPowerBarValue(puttPower);
                 }
 
                 puttPowerText.text = "Putt Power: " + puttPower;
@@ -113,19 +115,60 @@ public class GolfBall : MonoBehaviour
                 {
                     isTurn = false;
                     turnManager.GetComponent<TurnManager>().nextTurn();
+                    directionArrows.SetActive(false);
+                    Debug.Log(transform.name + " called nextTurn()");
                 }
 
-
-
-
-                if (Input.GetKeyUp(KeyCode.L))
-                {
-                    Debug.Log("Total Putts: " + totalPutts);
-                    Debug.Log("Total Distance Traveled: " + totalMTraveled + "m");
-                }
-
+            } else
+            {
+                directionArrows.SetActive(false);
             }
         }
+    }
+
+    public static void SetPuttPowerBarValue(float value)
+    {
+        puttPowerBarImg.fillAmount = value;
+        if (puttPowerBarImg.fillAmount < 0.33f)
+        {
+            SetPuttPowerBarColor(Color.green);
+        }
+        else if (puttPowerBarImg.fillAmount < 0.66f)
+        {
+            SetPuttPowerBarColor(Color.yellow);
+        }
+        else
+        {
+            SetPuttPowerBarColor(Color.red);
+        }
+    }
+
+    public static void SetPuttPowerBarColor(Color healthColor)
+    {
+        puttPowerBarImg.color = healthColor;
+    }
+
+    void OnTriggerEnter(Collider col)
+    {
+        if (col.gameObject.CompareTag("Hole"))
+        {
+            StartCoroutine(DisplayPuttCount());
+        }
+
+    }
+
+    IEnumerator DisplayPuttCount()
+    {
+        puttText.text = "Putts: " + putts;
+        puttText.enabled = true;
+        yield return new WaitForSeconds(3f);
+        puttText.enabled = false;
+        putts = 0;
+        isTurn = false;
+        finishedHole = true;
+        gameObject.SetActive(false);
+        turnManager.GetComponent<TurnManager>().nextTurn();
+        Debug.Log(transform.name + " called nextTurn()");
     }
 }
 
