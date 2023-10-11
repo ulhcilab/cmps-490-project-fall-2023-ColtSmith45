@@ -23,7 +23,6 @@ public class TurnManager : MonoBehaviour
             cameraPlayerTuples[i - 1].Item2.SetActive(false);
             cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().transform.position = holeLocations[hole];
         }
-        //Shuffle(cameraPlayerTuples);
         nextTurn();
 
     }
@@ -57,7 +56,7 @@ public class TurnManager : MonoBehaviour
     {
         for (int i = array.Length - 1; i > 0; i--)
         {
-            int j = UnityEngine.Random.Range(0, i + 1); // Use UnityEngine.Random.Range
+            int j = UnityEngine.Random.Range(0, i + 1); 
             T temp = array[i];
             array[i] = array[j];
             array[j] = temp;
@@ -133,14 +132,17 @@ public class TurnManager : MonoBehaviour
 
     public void DisableNonPlayers()
     {
-        for (int i = 1; i <= playerCount; i++)
+        Debug.Log("DisableNonPlayers Called");
+        for (int i = playerCount + 1; i <= maxPossiblePlayers ; i++)
         {
             Camera cam = GameObject.Find("Cam " + i).GetComponent<Camera>();
             GameObject player = GameObject.Find("Golf Ball " + i.ToString());
 
             if (cam != null && player != null)
             {
-                cameraPlayerTuples[i - 1] = new Tuple<Camera, GameObject>(cam, player);
+                cam.enabled = false;
+                player.SetActive(false);
+                Debug.Log("Disabled " + player.name);
             }
             else
             {
