@@ -8,14 +8,16 @@ public class TurnManager : MonoBehaviour
 {
     public int maxPossiblePlayers = 4;
     public int playerCount = 4;
+    public int holeStart = 1;
     private int turn = 0;
-    private int hole = 0; 
+    private int hole;
     public Tuple<Camera, GameObject>[] cameraPlayerTuples;
     public TextMeshProUGUI playerName;
     public Vector3[] holeLocations;
 
     void Start()
     {
+        hole = holeStart - 1;
         DisableNonPlayers();
         FillCameraPlayerTuples();
         for (int i = 1; i <= playerCount; i++)
