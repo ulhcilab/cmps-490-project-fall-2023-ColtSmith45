@@ -13,11 +13,10 @@ public class GolfBall : MonoBehaviour
     private float puttPower = 0.0f;
     public int puttCount = 0;
     private bool ballMoving = false;
-    private int totalPutts = 0;
+    public int totalPutts = 0;
     public int putts = 0;
     public bool isTurn = false;
     public bool finishedHole = false;
-    public float turnTime = 0;
     private Rigidbody rb;
     public TextMeshProUGUI puttPowerText;
     public TextMeshProUGUI puttText;
@@ -33,7 +32,6 @@ public class GolfBall : MonoBehaviour
     {
         directionArrows.SetActive(false);
         puttPowerBarImg = puttPowerBar.transform.GetComponent<Image>();
-        puttText.enabled = false;
         rb = GetComponent<Rigidbody>();
         SetPuttPowerBarValue(puttPower);
     }
@@ -43,7 +41,6 @@ public class GolfBall : MonoBehaviour
     {
         if (isTurn)
         {
-            turnTime += Time.deltaTime;
             float rotationAmount = 0;
 
             if (rb.velocity.magnitude > 0.1)
@@ -107,6 +104,7 @@ public class GolfBall : MonoBehaviour
                     puttCount -= 1;
                     totalPutts++;
                     putts++;
+                    puttText.text = "Putts: " + putts;
                     puttPower = 0.0f;
                     SetPuttPowerBarValue(puttPower);
                 }
@@ -144,9 +142,9 @@ public class GolfBall : MonoBehaviour
         }
     }
 
-    public static void SetPuttPowerBarColor(Color healthColor)
+    public static void SetPuttPowerBarColor(Color c)
     {
-        puttPowerBarImg.color = healthColor;
+        puttPowerBarImg.color = c;
     }
 
     void OnTriggerEnter(Collider col)
@@ -154,20 +152,20 @@ public class GolfBall : MonoBehaviour
         if (col.gameObject.CompareTag("Hole"))
         {
             reachedHole = true;
+        } else if (col.gameObject.CompareTag("Kill Box"))
+        {
+            Restart();
         }
     }
 
     IEnumerator ReachedHole()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.1f);
         if (!ballMoving && !endCalled)
         {
             endCalled = true;
             Debug.Log("ReachedHole() Called");
-            puttText.text = "Putts: " + putts;
-            puttText.enabled = true;
             yield return new WaitForSeconds(3f);
-            puttText.enabled = false;
             putts = 0;
             isTurn = false;
             finishedHole = true;
@@ -180,17 +178,22 @@ public class GolfBall : MonoBehaviour
 
     IEnumerator EndTurn()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.1f);
         if (!ballMoving && !endCalled)
         {
             endCalled = true;
-            Debug.Log("EndTurn() Called");
             directionArrows.SetActive(false);
             isTurn = false;
             yield return new WaitForSeconds(3f);
             turnManager.GetComponent<TurnManager>().nextTurn();
             endCalled = false;
         }
+    }
+
+    void Restart()
+    {
+        rb.velocity = Vector3.zero;
+        transform.position = turnManager.GetComponent<TurnManager>().holeLocations[turnManager.GetComponent<TurnManager>().hole];
     }
 }
 
