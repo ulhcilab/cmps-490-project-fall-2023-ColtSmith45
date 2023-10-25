@@ -23,10 +23,6 @@ public class Hole : MonoBehaviour
 
     void OnTriggerEnter(Collider col)
     {
-        if (col.gameObject.CompareTag("Golf Ball"))
-        {
-            Debug.Log("Ball Reached Hole");
-        }
-        
+
     }
 }

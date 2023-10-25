@@ -15,6 +15,7 @@ public class TurnManager : MonoBehaviour
     public Tuple<Camera, GameObject>[] cameraPlayerTuples;
     public TextMeshProUGUI playerName;
     public Vector3[] holeLocations;
+    public TextMeshProUGUI holeTxt;
     public TextMeshProUGUI firstPlaceNameTxt;
     public TextMeshProUGUI firstPlacePuttTxt;
     public TextMeshProUGUI secondPlaceNameTxt;
@@ -33,6 +34,7 @@ public class TurnManager : MonoBehaviour
         playerScreen.enabled = true;
         scoreboard.enabled = false;
         hole = holeStart - 1;
+        holeTxt.text = "Hole: " + holeStart;
         DisableNonPlayers();
         FillCameraPlayerTuples();
         for (int i = 1; i <= playerCount; i++)
@@ -82,7 +84,6 @@ public class TurnManager : MonoBehaviour
 
     public void nextTurn()
     {
-        Debug.Log("Next Turn Called");
         if (turn + 1 > playerCount)
         {
             turn = 1;
@@ -91,7 +92,6 @@ public class TurnManager : MonoBehaviour
         {
             turn += 1;
         }
-        Debug.Log(turn);
 
 
         int playersFinished = 0;
@@ -125,6 +125,7 @@ public class TurnManager : MonoBehaviour
             } 
             else
             {
+                cameraPlayerTuples[i - 1].Item2.SetActive(false);
                 cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().isTurn = false;
                 cameraPlayerTuples[i - 1].Item1.enabled = false;
             }
@@ -133,12 +134,13 @@ public class TurnManager : MonoBehaviour
 
     public void nextHole()
     {
-        hole++; 
+        hole++;
         if (hole > holeEnd - 1)
         {
             EndGame();
         } else
         {
+            holeTxt.text = "Hole: " + (hole + 1);
             for (int i = 1; i <= playerCount; i++)
             {
                 cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().transform.position = holeLocations[hole];
@@ -152,7 +154,6 @@ public class TurnManager : MonoBehaviour
 
     public void DisableNonPlayers()
     {
-        Debug.Log("DisableNonPlayers Called");
         for (int i = playerCount + 1; i <= maxPossiblePlayers ; i++)
         {
             Camera cam = GameObject.Find("Cam " + i).GetComponent<Camera>();
@@ -162,7 +163,6 @@ public class TurnManager : MonoBehaviour
             {
                 cam.enabled = false;
                 player.SetActive(false);
-                Debug.Log("Disabled " + player.name);
             }
             else
             {
@@ -190,24 +190,28 @@ public class TurnManager : MonoBehaviour
         }
 
         Array.Sort(puttScores);
-
+        for (int i = 0; i < puttScores.Length; i++)
+        {
+            Debug.Log(puttScores[i]);
+        }
 
 
 
         for (int i = 0; i < playerCount; i++)
         {
-            Debug.Log(cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString());
-            Debug.Log(puttScores[i].ToString());
-         
+            Debug.Log(puttScores[i]);
+
             if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 0)
             {
-                firstPlaceNameTxt.text = cameraPlayerTuples[0].Item2.name;
+                Debug.Log("Reached 1st Place");
+                firstPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
                 firstPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 firstPlaceNameTxt.enabled = true;
                 firstPlacePuttTxt.enabled = true;
 
             } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 1)
             {
+                Debug.Log("Reached 2nd Place");
                 secondPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
                 secondPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 secondPlaceNameTxt.enabled = true;
@@ -215,6 +219,7 @@ public class TurnManager : MonoBehaviour
 
             } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 2)
             {
+                Debug.Log("Reached 3rd Place");
                 thirdPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
                 thirdPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 thirdPlaceNameTxt.enabled = true;
@@ -222,6 +227,7 @@ public class TurnManager : MonoBehaviour
 
             } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 3)
             {
+                Debug.Log("Reached 4th Place");
                 fourthPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
                 fourthPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 fourthPlaceNameTxt.enabled = true;

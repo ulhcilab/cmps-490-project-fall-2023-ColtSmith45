@@ -8,8 +8,8 @@ using UnityEngine.UI;
 public class GolfBall : MonoBehaviour
 {
     public float rotationIncrement = 100f;
-    public float maxPuttPower = .5f;
-    public float puttPowerIncrementSpeed = 1;
+    public static float maxPuttPower = .5f;
+    public float puttPowerIncrementSpeed = .5f;
     private float puttPower = 0.0f;
     public int puttCount = 0;
     private bool ballMoving = false;
@@ -109,7 +109,7 @@ public class GolfBall : MonoBehaviour
                     SetPuttPowerBarValue(puttPower);
                 }
 
-                puttPowerText.text = "Putt Power: " + puttPower;
+                puttPowerText.text = "Putt Power: " + Mathf.Floor(puttPower * 100);
 
             } else if (!ballMoving && puttCount == 0 && !reachedHole && !endCalled) {
                 StartCoroutine(EndTurn());
@@ -127,12 +127,13 @@ public class GolfBall : MonoBehaviour
 
     public static void SetPuttPowerBarValue(float value)
     {
-        puttPowerBarImg.fillAmount = value;
-        if (puttPowerBarImg.fillAmount < 0.17f)
+        float mappedValue = value / maxPuttPower; // Map the value to the [0,1] range
+        puttPowerBarImg.fillAmount = mappedValue;
+        if (puttPowerBarImg.fillAmount < 0.3f)
         {
             SetPuttPowerBarColor(Color.green);
         }
-        else if (puttPowerBarImg.fillAmount < 0.37f)
+        else if (puttPowerBarImg.fillAmount < 0.7f)
         {
             SetPuttPowerBarColor(Color.yellow);
         }
@@ -164,8 +165,7 @@ public class GolfBall : MonoBehaviour
         if (!ballMoving && !endCalled)
         {
             endCalled = true;
-            Debug.Log("ReachedHole() Called");
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(1.5f);
             putts = 0;
             isTurn = false;
             finishedHole = true;
@@ -184,7 +184,7 @@ public class GolfBall : MonoBehaviour
             endCalled = true;
             directionArrows.SetActive(false);
             isTurn = false;
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(1.5f);
             turnManager.GetComponent<TurnManager>().nextTurn();
             endCalled = false;
         }
