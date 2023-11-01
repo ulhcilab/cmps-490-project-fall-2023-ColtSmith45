@@ -11,7 +11,6 @@ public class GolfBall : MonoBehaviour
     public static float maxPuttPower = .5f;
     public float puttPowerIncrementSpeed = .5f;
     private float puttPower = 0.0f;
-    public int puttCount = 0;
     private bool ballMoving = false;
     public int totalPutts = 0;
     public int putts = 0;
@@ -52,9 +51,9 @@ public class GolfBall : MonoBehaviour
                 ballMoving = false;
             }
 
-            if (!ballMoving && puttCount == 1)
+            if (!ballMoving)
             {
-                directionArrows.SetActive(true);
+                if (!reachedHole) directionArrows.SetActive(true);
                 // rotate left
                 if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
                 {
@@ -83,7 +82,7 @@ public class GolfBall : MonoBehaviour
                 }
 
                 // Check for space bar input to control putt power
-                if (Input.GetKey(KeyCode.Space) && puttCount > 0)
+                if (Input.GetKey(KeyCode.Space))
                 {
                     if (puttPower + puttPowerIncrementSpeed * Time.deltaTime > maxPuttPower)
                     {
@@ -97,11 +96,10 @@ public class GolfBall : MonoBehaviour
                 }
 
                 // Check for space bar release to perform the putt
-                if (Input.GetKeyUp(KeyCode.Space) && puttCount > 0)
+                if (Input.GetKeyUp(KeyCode.Space))
                 {
                     Vector3 prevPosition = transform.position;
                     GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
-                    puttCount -= 1;
                     totalPutts++;
                     putts++;
                     puttText.text = "Putts: " + putts;
@@ -111,12 +109,7 @@ public class GolfBall : MonoBehaviour
 
                 puttPowerText.text = "Putt Power: " + Mathf.Floor(puttPower * 100);
 
-            } else if (!ballMoving && puttCount == 0 && !reachedHole && !endCalled) {
-                StartCoroutine(EndTurn());
-
-            } 
-            else if (!ballMoving && puttCount == 0 && reachedHole && !endCalled) {
-                StartCoroutine(ReachedHole());
+                if (reachedHole) StartCoroutine(ReachedHole());
 
             } else {
 
@@ -153,6 +146,7 @@ public class GolfBall : MonoBehaviour
         if (col.gameObject.CompareTag("Hole"))
         {
             reachedHole = true;
+            Debug.Log("Reached Hole: " + reachedHole);
         } else if (col.gameObject.CompareTag("Kill Box"))
         {
             Restart();
@@ -161,13 +155,14 @@ public class GolfBall : MonoBehaviour
 
     IEnumerator ReachedHole()
     {
+        Debug.Log("Reached Hole Called");
         yield return new WaitForSeconds(0.1f);
-        if (!ballMoving && !endCalled)
+        if (!endCalled)
         {
             endCalled = true;
+            isTurn = false;
             yield return new WaitForSeconds(1.5f);
             putts = 0;
-            isTurn = false;
             finishedHole = true;
             gameObject.SetActive(false);
             turnManager.GetComponent<TurnManager>().nextTurn();

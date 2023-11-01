@@ -119,7 +119,6 @@ public class TurnManager : MonoBehaviour
                 cameraPlayerTuples[i - 1].Item1.enabled = true;
                 playerName.text = cameraPlayerTuples[i - 1].Item2.name;
                 cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().isTurn = true;
-                cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().puttCount = 1;
                 cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().puttText.text = "Putts: " + cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().putts;
 
             } 
