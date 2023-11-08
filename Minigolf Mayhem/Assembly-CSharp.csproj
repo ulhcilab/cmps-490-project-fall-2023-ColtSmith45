@@ -61,6 +61,7 @@
     <Compile Include="Assets\Scripts\Golf Ball.cs" />
     <Compile Include="Assets\Scripts\Hole.cs" />
     <Compile Include="Assets\Scripts\Camera Follow.cs" />
+    <Compile Include="Assets\Scripts\Object Mover.cs" />
     <Compile Include="Assets\Scripts\Object Rotator.cs" />
     <Compile Include="Assets\Scripts\Turn Manager.cs" />
   </ItemGroup>
