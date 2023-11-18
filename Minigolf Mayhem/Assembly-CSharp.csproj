@@ -59,7 +59,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Golf Ball.cs" />
-    <Compile Include="Assets\Scripts\Radius Height.cs" />
     <Compile Include="Assets\Scripts\Camera Follow.cs" />
     <Compile Include="Assets\Scripts\Object Mover.cs" />
     <Compile Include="Assets\Scripts\Object Rotator.cs" />

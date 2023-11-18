@@ -155,7 +155,6 @@ public class GolfBall : MonoBehaviour
 
     IEnumerator ReachedHole()
     {
-        Debug.Log("Reached Hole Called");
         yield return new WaitForSeconds(0.1f);
         if (!endCalled)
         {
@@ -165,7 +164,7 @@ public class GolfBall : MonoBehaviour
             putts = 0;
             finishedHole = true;
             gameObject.SetActive(false);
-            turnManager.GetComponent<TurnManager>().nextTurn();
+            turnManager.GetComponent<TurnManager>().NextTurn();
             reachedHole = false;
             endCalled = false;
         }
@@ -180,7 +179,7 @@ public class GolfBall : MonoBehaviour
             directionArrows.SetActive(false);
             isTurn = false;
             yield return new WaitForSeconds(1.5f);
-            turnManager.GetComponent<TurnManager>().nextTurn();
+            turnManager.GetComponent<TurnManager>().NextTurn();
             endCalled = false;
         }
     }

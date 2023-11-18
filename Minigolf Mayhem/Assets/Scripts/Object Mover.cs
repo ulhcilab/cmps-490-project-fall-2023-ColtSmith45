@@ -15,81 +15,84 @@ public class ObjectMover : MonoBehaviour
     private bool paused = false;
 
     private Vector3 originalPosition;
-    private bool movingForward = true;
+    private bool movingPos = true;
 
     private void Start()
     {
         originalPosition = transform.position;
+        StartCoroutine(Delay());
     }
 
     private void Update()
     {
-        StartCoroutine(Delay());
 
         if (delayFinished)
         {
             if (moveHorizontally)
             {
-                MoveHorizontally();
+                HorizontalMovement();
             }
             else if (moveVertically)
             {
-                MoveVertically();
+                VerticalMovement();
             }
-
         }
     }
 
-    private void MoveHorizontally()
+    public void HorizontalMovement()
     {
         if (!paused)
         {
-            if (movingForward)
+            if (movingPos)
             {
                 transform.Translate(Vector3.right * Time.deltaTime * moveSpeed);
                 if (Vector3.Distance(originalPosition, transform.position) >= moveDistance)
                 {
                     StartCoroutine(Pause());
-                    movingForward = false;
+                    movingPos = false;
                 }
             }
             else
             {
                 transform.Translate(Vector3.left * Time.deltaTime * backSpeed);
-                if (Vector3.Distance(originalPosition, transform.position) <= 0.01f)
+                if (transform.position.z - originalPosition.z <= 0)
                 {
+                    transform.position = originalPosition;
                     StartCoroutine(Pause());
-                    movingForward = true;
+                    movingPos = true;
                 }
             }
 
         }
+
     }
 
-    private void MoveVertically()
+    public void VerticalMovement()
     {
         if (!paused)
         {
-            if (movingForward)
+            if (movingPos)
             {
                 transform.Translate(Vector3.up * Time.deltaTime * moveSpeed);
                 if (Vector3.Distance(originalPosition, transform.position) >= moveDistance)
                 {
                     if (!paused) StartCoroutine(Pause());
-                    movingForward = false;
+                    movingPos = false;
                 }
             }
             else
             {
                 transform.Translate(Vector3.down * Time.deltaTime * backSpeed);
-                if (Vector3.Distance(originalPosition, transform.position) <= 0.01f)
+                if (transform.position.y - originalPosition.y <= 0)
                 {
+                    transform.position = originalPosition; 
                     if (!paused) StartCoroutine(Pause());
-                    movingForward = true;
+                    movingPos = true;
                 }
             }
 
         }
+
     }
 
     IEnumerator Pause()

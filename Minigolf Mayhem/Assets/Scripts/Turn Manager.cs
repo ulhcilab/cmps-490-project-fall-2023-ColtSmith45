@@ -42,7 +42,7 @@ public class TurnManager : MonoBehaviour
             cameraPlayerTuples[i - 1].Item2.SetActive(false);
             cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().transform.position = holeLocations[hole];
         }
-        nextTurn();
+        NextTurn();
 
     }
 
@@ -71,18 +71,7 @@ public class TurnManager : MonoBehaviour
         }
     }
 
-    public static void Shuffle<T>(T[] array)
-    {
-        for (int i = array.Length - 1; i > 0; i--)
-        {
-            int j = UnityEngine.Random.Range(0, i + 1); 
-            T temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-    }
-
-    public void nextTurn()
+    public void NextTurn()
     {
         if (turn + 1 > playerCount)
         {
@@ -112,7 +101,7 @@ public class TurnManager : MonoBehaviour
             {
                 if (cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().finishedHole)
                 {
-                    nextTurn();
+                    NextTurn();
                     return;
                 }
                 cameraPlayerTuples[i - 1].Item2.SetActive(true);
@@ -147,7 +136,7 @@ public class TurnManager : MonoBehaviour
                 cameraPlayerTuples[i - 1].Item2.GetComponent<GolfBall>().finishedHole = false;
             }
             turn = 0;
-            nextTurn();
+            NextTurn();
         }
     }
 
