@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class ObjectMover : MonoBehaviour
 {
@@ -45,20 +46,20 @@ public class ObjectMover : MonoBehaviour
         {
             if (movingPos)
             {
-                transform.Translate(Vector3.right * Time.deltaTime * moveSpeed);
+                transform.Translate(Vector3.forward * Time.deltaTime * moveSpeed);
                 if (Vector3.Distance(originalPosition, transform.position) >= moveDistance)
                 {
-                    StartCoroutine(Pause());
+                    if (!paused) StartCoroutine(Pause());
                     movingPos = false;
                 }
             }
             else
             {
-                transform.Translate(Vector3.left * Time.deltaTime * backSpeed);
+                transform.Translate(Vector3.back * Time.deltaTime * backSpeed);
                 if (transform.position.z - originalPosition.z <= 0)
                 {
                     transform.position = originalPosition;
-                    StartCoroutine(Pause());
+                    if (!paused) StartCoroutine(Pause());
                     movingPos = true;
                 }
             }

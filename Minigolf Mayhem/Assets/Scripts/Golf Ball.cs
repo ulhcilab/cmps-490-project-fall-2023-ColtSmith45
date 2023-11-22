@@ -25,10 +25,15 @@ public class GolfBall : MonoBehaviour
     public GameObject directionArrows;
     private bool reachedHole = false;
     private bool endCalled = false;
+    public AudioSource audioSource;
+    public AudioClip puttSound;
+    public AudioClip puttPowerSound;
+    private bool audioPlaying = false;
 
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         directionArrows.SetActive(false);
         puttPowerBarImg = puttPowerBar.transform.GetComponent<Image>();
         rb = GetComponent<Rigidbody>();
@@ -93,11 +98,23 @@ public class GolfBall : MonoBehaviour
                         puttPower += puttPowerIncrementSpeed * Time.deltaTime;
                     }
                     SetPuttPowerBarValue(puttPower);
+
+                    if (!audioPlaying)
+                    {
+                        audioPlaying = true;
+                        audioSource.volume = 0.5f;
+                        audioSource.pitch = (1 + puttPower) * audioSource.pitch;
+                        audioSource.PlayOneShot(puttPowerSound, 1);
+                        StartCoroutine(WaitForAudioFinish(puttPowerSound.length));
+                    }
                 }
 
                 // Check for space bar release to perform the putt
                 if (Input.GetKeyUp(KeyCode.Space))
                 {
+                    audioSource.volume = 1;
+                    audioSource.pitch = 1;
+                    audioSource.PlayOneShot(puttSound, 1);
                     Vector3 prevPosition = transform.position;
                     GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
                     totalPutts++;
@@ -188,6 +205,12 @@ public class GolfBall : MonoBehaviour
     {
         rb.velocity = Vector3.zero;
         transform.position = turnManager.GetComponent<TurnManager>().holeLocations[turnManager.GetComponent<TurnManager>().hole];
+    }
+
+    IEnumerator WaitForAudioFinish(float audioLength)
+    {
+        yield return new WaitForSeconds(audioLength);
+        audioPlaying = false;
     }
 }
 
