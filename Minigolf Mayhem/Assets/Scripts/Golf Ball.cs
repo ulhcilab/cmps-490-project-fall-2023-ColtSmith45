@@ -26,8 +26,9 @@ public class GolfBall : MonoBehaviour
     private bool reachedHole = false;
     private bool endCalled = false;
     public AudioSource audioSource;
-    public AudioClip puttSound;
-    public AudioClip puttPowerSound;
+    public AudioClip puttSoundEffect;
+    public AudioClip puttPowerSoundEffect;
+    public AudioClip holeSoundEffect;
     private bool audioPlaying = false;
 
     // Start is called before the first frame update
@@ -104,8 +105,8 @@ public class GolfBall : MonoBehaviour
                         audioPlaying = true;
                         audioSource.volume = 0.5f;
                         audioSource.pitch = (1 + puttPower) * audioSource.pitch;
-                        audioSource.PlayOneShot(puttPowerSound, 1);
-                        StartCoroutine(WaitForAudioFinish(puttPowerSound.length));
+                        audioSource.PlayOneShot(puttPowerSoundEffect, 1);
+                        StartCoroutine(WaitForAudioFinish(puttPowerSoundEffect.length));
                     }
                 }
 
@@ -114,7 +115,7 @@ public class GolfBall : MonoBehaviour
                 {
                     audioSource.volume = 1;
                     audioSource.pitch = 1;
-                    audioSource.PlayOneShot(puttSound, 1);
+                    audioSource.PlayOneShot(puttSoundEffect, 1);
                     Vector3 prevPosition = transform.position;
                     GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
                     totalPutts++;
@@ -160,14 +161,18 @@ public class GolfBall : MonoBehaviour
 
     void OnTriggerEnter(Collider col)
     {
-        if (col.gameObject.CompareTag("Hole"))
+        if(col.gameObject.CompareTag("Hole Drop"))
+        {
+            audioSource.PlayOneShot(holeSoundEffect, 1);
+        } else if (col.gameObject.CompareTag("Hole"))
         {
             reachedHole = true;
             Debug.Log("Reached Hole: " + reachedHole);
-        } else if (col.gameObject.CompareTag("Kill Box"))
+        }
+        else if (col.gameObject.CompareTag("Kill Box"))
         {
             Restart();
-        }
+        } 
     }
 
     IEnumerator ReachedHole()
