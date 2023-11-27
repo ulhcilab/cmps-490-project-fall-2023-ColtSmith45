@@ -15,7 +15,6 @@ public class GolfBall : MonoBehaviour
     public int totalPutts = 0;
     public int putts = 0;
     public bool isTurn = false;
-    public bool finishedHole = false;
     private Rigidbody rb;
     public TextMeshProUGUI puttPowerText;
     public TextMeshProUGUI puttText;
@@ -23,17 +22,21 @@ public class GolfBall : MonoBehaviour
     public GameObject puttPowerBar;
     private static Image puttPowerBarImg;
     public GameObject directionArrows;
-    private bool reachedHole = false;
-    private bool endCalled = false;
+    public bool reachedHole = false;
+    public bool endCalled = false;
     public AudioSource audioSource;
     public AudioClip puttSoundEffect;
     public AudioClip puttPowerSoundEffect;
     public AudioClip holeSoundEffect;
     private bool audioPlaying = false;
+    public string ballColorHex; 
 
     // Start is called before the first frame update
     void Start()
     {
+        Renderer renderer = GetComponent<Renderer>();
+        Material material = renderer.material;
+        material.color = HexToColor(ballColorHex);
         audioSource = GetComponent<AudioSource>();
         directionArrows.SetActive(false);
         puttPowerBarImg = puttPowerBar.transform.GetComponent<Image>();
@@ -57,80 +60,92 @@ public class GolfBall : MonoBehaviour
                 ballMoving = false;
             }
 
+            //Ball is not moving and hasn't reached max putts
             if (!ballMoving)
             {
-                if (!reachedHole) directionArrows.SetActive(true);
-                // rotate left
-                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+                //
+                if (putts < turnManager.GetComponent<TurnManager>().maxPutts)
                 {
-                    if (Input.GetKey(KeyCode.LeftShift))
+                    if (!reachedHole) directionArrows.SetActive(true);
+                    // rotate left
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
                     {
-                        rotationAmount = -rotationIncrement / 8;
+                        if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                            rotationAmount = -rotationIncrement / 8;
+                        }
+                        else
+                        {
+                            rotationAmount = -rotationIncrement;
+                        }
+                        transform.Rotate(0, rotationAmount * Time.deltaTime, 0);
                     }
-                    else
+                    // rotate right
+                    else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
                     {
-                        rotationAmount = -rotationIncrement;
+                        if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                            rotationAmount = rotationIncrement / 8;
+                        }
+                        else
+                        {
+                            rotationAmount = rotationIncrement;
+                        }
+                        transform.Rotate(0, rotationAmount * Time.deltaTime, 0);
                     }
-                    transform.Rotate(0, rotationAmount * Time.deltaTime, 0);
+
+                    // Check for space bar input to control putt power
+                    if (Input.GetKey(KeyCode.Space))
+                    {
+                        if (puttPower + puttPowerIncrementSpeed * Time.deltaTime > maxPuttPower)
+                        {
+                            puttPower = maxPuttPower;
+                        }
+                        else
+                        {
+                            puttPower += puttPowerIncrementSpeed * Time.deltaTime;
+                        }
+                        SetPuttPowerBarValue(puttPower);
+
+                        if (!audioPlaying)
+                        {
+                            audioPlaying = true;
+                            audioSource.volume = 0.5f;
+                            audioSource.pitch = (1 + puttPower) * audioSource.pitch;
+                            audioSource.PlayOneShot(puttPowerSoundEffect, 1);
+                            StartCoroutine(WaitForAudioFinish(puttPowerSoundEffect.length));
+                        }
+                    }
+
+                    // Check for space bar release to perform the putt
+                    if (Input.GetKeyUp(KeyCode.Space))
+                    {
+                        audioSource.volume = 1;
+                        audioSource.pitch = 1;
+                        audioSource.PlayOneShot(puttSoundEffect, 1);
+                        Vector3 prevPosition = transform.position;
+                        GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
+                        totalPutts++;
+                        putts++;
+                        puttText.text = "Putts: " + putts;
+                        puttPower = 0.0f;
+                        SetPuttPowerBarValue(puttPower);
+                    }
+
+                    puttPowerText.text = "Putt Power: " + Mathf.Floor(puttPower * 100);
+
+                //Ball has reached max putts, has stopped moving, & hasn't reached the hole
                 }
-                // rotate right
-                else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+                else if (!reachedHole && !ballMoving)
                 {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        rotationAmount = rotationIncrement / 8;
-                    }
-                    else
-                    {
-                        rotationAmount = rotationIncrement;
-                    }
-                    transform.Rotate(0, rotationAmount * Time.deltaTime, 0);
+                    Debug.Log("Ball stopped moving and didn't reach hole");
+                    directionArrows.SetActive(false);
+                    StartCoroutine(ReachedMaxPutts());
                 }
 
-                // Check for space bar input to control putt power
-                if (Input.GetKey(KeyCode.Space))
-                {
-                    if (puttPower + puttPowerIncrementSpeed * Time.deltaTime > maxPuttPower)
-                    {
-                        puttPower = maxPuttPower;
-                    }
-                    else
-                    {
-                        puttPower += puttPowerIncrementSpeed * Time.deltaTime;
-                    }
-                    SetPuttPowerBarValue(puttPower);
-
-                    if (!audioPlaying)
-                    {
-                        audioPlaying = true;
-                        audioSource.volume = 0.5f;
-                        audioSource.pitch = (1 + puttPower) * audioSource.pitch;
-                        audioSource.PlayOneShot(puttPowerSoundEffect, 1);
-                        StartCoroutine(WaitForAudioFinish(puttPowerSoundEffect.length));
-                    }
-                }
-
-                // Check for space bar release to perform the putt
-                if (Input.GetKeyUp(KeyCode.Space))
-                {
-                    audioSource.volume = 1;
-                    audioSource.pitch = 1;
-                    audioSource.PlayOneShot(puttSoundEffect, 1);
-                    Vector3 prevPosition = transform.position;
-                    GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
-                    totalPutts++;
-                    putts++;
-                    puttText.text = "Putts: " + putts;
-                    puttPower = 0.0f;
-                    SetPuttPowerBarValue(puttPower);
-                }
-
-                puttPowerText.text = "Putt Power: " + Mathf.Floor(puttPower * 100);
-
-                if (reachedHole) StartCoroutine(ReachedHole());
-
-            } else {
-
+            //Ball moving and still has putts left 
+            } else
+            {
                 directionArrows.SetActive(false);
             }
         }
@@ -166,8 +181,8 @@ public class GolfBall : MonoBehaviour
             audioSource.PlayOneShot(holeSoundEffect, 1);
         } else if (col.gameObject.CompareTag("Hole"))
         {
-            reachedHole = true;
-            Debug.Log("Reached Hole: " + reachedHole);
+            reachedHole = true; 
+            StartCoroutine(ReachedHole());
         }
         else if (col.gameObject.CompareTag("Kill Box"))
         {
@@ -177,32 +192,29 @@ public class GolfBall : MonoBehaviour
 
     IEnumerator ReachedHole()
     {
+        Debug.Log("ReachedHole Called");
+        isTurn = false;
+        yield return new WaitForSeconds(1.5f);
+        putts = 0;
+        gameObject.SetActive(false);
+        turnManager.GetComponent<TurnManager>().playersFinished++;
+        turnManager.GetComponent<TurnManager>().NextTurn();
+    }
+
+    IEnumerator ReachedMaxPutts()
+    {
         yield return new WaitForSeconds(0.1f);
         if (!endCalled)
         {
             endCalled = true;
             isTurn = false;
+            totalPutts += turnManager.GetComponent<TurnManager>().maxPuttPenalty;
+            puttText.text = "Putts: " + (putts + turnManager.GetComponent<TurnManager>().maxPuttPenalty);
             yield return new WaitForSeconds(1.5f);
             putts = 0;
-            finishedHole = true;
             gameObject.SetActive(false);
+            turnManager.GetComponent<TurnManager>().playersFinished++;
             turnManager.GetComponent<TurnManager>().NextTurn();
-            reachedHole = false;
-            endCalled = false;
-        }
-    }
-
-    IEnumerator EndTurn()
-    {
-        yield return new WaitForSeconds(0.1f);
-        if (!ballMoving && !endCalled)
-        {
-            endCalled = true;
-            directionArrows.SetActive(false);
-            isTurn = false;
-            yield return new WaitForSeconds(1.5f);
-            turnManager.GetComponent<TurnManager>().NextTurn();
-            endCalled = false;
         }
     }
 
@@ -216,6 +228,13 @@ public class GolfBall : MonoBehaviour
     {
         yield return new WaitForSeconds(audioLength);
         audioPlaying = false;
+    }
+
+    Color HexToColor(string hex)
+    {
+        Color color = new Color();
+        ColorUtility.TryParseHtmlString(hex, out color);
+        return color;
     }
 }
 
