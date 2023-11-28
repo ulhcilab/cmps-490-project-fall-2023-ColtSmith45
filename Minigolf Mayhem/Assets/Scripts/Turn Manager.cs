@@ -45,10 +45,12 @@ public class TurnManager : MonoBehaviour
     public static String[] playerNames = { "Player 1", "Player 2", "Player 3", "Player 4" };
     public AudioClip clickSoundEffect;
     private AudioSource audioSource;
+    private bool paused = false;
 
     void Start()
     {
-        audioSource = GetComponent<AudioSource>();
+        AudioSource[] audioSources = GetComponents<AudioSource>();
+        audioSource = audioSources[1];
         endScreenCam.enabled = false;
         scoreboard.enabled = false;
         pauseScreen.enabled = false;
@@ -71,9 +73,12 @@ public class TurnManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
         {
+            paused = true;
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
             if (playerScreen.enabled)
             {
                 playerScreen.enabled = false;
+                cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().isTurn = false;
                 pauseScreen.enabled = true;
                 Time.timeScale = 0;
             } else if (controlsScreen.enabled)
@@ -90,48 +95,68 @@ public class TurnManager : MonoBehaviour
 
     public void ResumeButton()
     {
-        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
-        pauseScreen.enabled = false;
-        playerScreen.enabled = true;
-        Time.timeScale = 1;
+        if (paused)
+        {
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+            pauseScreen.enabled = false;
+            playerScreen.enabled = true;
+            cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().isTurn = true;
+            Time.timeScale = 1;
+        }
+        paused = false;
     }
 
     public void ControlsButton()
     {
-        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
-        controlsScreen.enabled = true;
-        pauseScreen.enabled = false;
+        if (paused)
+        {
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+            controlsScreen.enabled = true;
+            pauseScreen.enabled = false;
+        }
     }
 
     public void BackButton()
     {
-        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
-        controlsScreen.enabled = false;
-        pauseScreen.enabled = true;
+        if (paused)
+        {
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+            controlsScreen.enabled = false;
+            pauseScreen.enabled = true;
+        }
     }
 
     public void ResetBallButton()
     {
-        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
-        cameraPlayerTuples[turn - 1].Item2.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().transform.position = holeLocations[hole];
-        ResumeButton();
+        if (paused)
+        {
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+            cameraPlayerTuples[turn - 1].Item2.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().transform.position = holeLocations[hole];
+            ResumeButton();
+        }
     }
 
     public void ForfeitHoleButton()
     {
-        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
-        cameraPlayerTuples[turn - 1].Item2.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().totalPutts += maxPutts + maxPuttPenalty;
-        playersFinished++;
-        NextTurn();
-        ResumeButton();
+        if (paused)
+        {
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+            cameraPlayerTuples[turn - 1].Item2.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().totalPutts += maxPutts + maxPuttPenalty;
+            playersFinished++;
+            NextTurn();
+            ResumeButton();
+        }
     }
 
     public void ExitGameButton()
     {
-        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
-        SceneManager.LoadScene("Menu Scene");
+        if (paused || scoreboard.enabled)
+        {
+            audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+            SceneManager.LoadScene("Menu Scene");
+        }
     }
 
     public void FillCameraPlayerTuples()
