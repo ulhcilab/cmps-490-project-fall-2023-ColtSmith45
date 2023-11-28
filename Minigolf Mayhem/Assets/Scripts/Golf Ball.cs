@@ -18,6 +18,7 @@ public class GolfBall : MonoBehaviour
     private Rigidbody rb;
     public TextMeshProUGUI puttPowerText;
     public TextMeshProUGUI puttText;
+    public TextMeshProUGUI centerText;
     public GameObject turnManager;
     public GameObject puttPowerBar;
     private static Image puttPowerBarImg;
@@ -28,15 +29,17 @@ public class GolfBall : MonoBehaviour
     public AudioClip puttSoundEffect;
     public AudioClip puttPowerSoundEffect;
     public AudioClip holeSoundEffect;
+    public AudioClip successSoundEffect;
+    public AudioClip failureSoundEffect;
     private bool audioPlaying = false;
-    public string ballColorHex; 
+    private bool delay = false;
+    public Image centerTxtBack;
 
     // Start is called before the first frame update
     void Start()
     {
-        Renderer renderer = GetComponent<Renderer>();
-        Material material = renderer.material;
-        material.color = HexToColor(ballColorHex);
+        centerTxtBack.enabled = false;
+        centerText.text = string.Empty;
         audioSource = GetComponent<AudioSource>();
         directionArrows.SetActive(false);
         puttPowerBarImg = puttPowerBar.transform.GetComponent<Image>();
@@ -51,7 +54,7 @@ public class GolfBall : MonoBehaviour
         {
             float rotationAmount = 0;
 
-            if (rb.velocity.magnitude > 0.1)
+            if (rb.velocity.magnitude > 0.0001)
             {
                 ballMoving = true;
             }
@@ -64,7 +67,7 @@ public class GolfBall : MonoBehaviour
             if (!ballMoving)
             {
                 //
-                if (putts < turnManager.GetComponent<TurnManager>().maxPutts)
+                if (putts < TurnManager.maxPutts)
                 {
                     if (!reachedHole) directionArrows.SetActive(true);
                     // rotate left
@@ -122,7 +125,7 @@ public class GolfBall : MonoBehaviour
                     {
                         audioSource.volume = 1;
                         audioSource.pitch = 1;
-                        audioSource.PlayOneShot(puttSoundEffect, 1);
+                        audioSource.PlayOneShot(puttSoundEffect, 0.25f);
                         Vector3 prevPosition = transform.position;
                         GetComponent<Rigidbody>().AddForce(transform.forward * puttPower, ForceMode.Impulse);
                         totalPutts++;
@@ -130,15 +133,15 @@ public class GolfBall : MonoBehaviour
                         puttText.text = "Putts: " + putts;
                         puttPower = 0.0f;
                         SetPuttPowerBarValue(puttPower);
+                        StartCoroutine(DelayForTime(1));
                     }
 
-                    puttPowerText.text = "Putt Power: " + Mathf.Floor(puttPower * 100);
+                    puttPowerText.text = "Putt Power: " + Mathf.Floor(puttPower * 200);
 
                 //Ball has reached max putts, has stopped moving, & hasn't reached the hole
                 }
-                else if (!reachedHole && !ballMoving)
+                else if (!reachedHole && !ballMoving && !delay)
                 {
-                    Debug.Log("Ball stopped moving and didn't reach hole");
                     directionArrows.SetActive(false);
                     StartCoroutine(ReachedMaxPutts());
                 }
@@ -178,7 +181,8 @@ public class GolfBall : MonoBehaviour
     {
         if(col.gameObject.CompareTag("Hole Drop"))
         {
-            audioSource.PlayOneShot(holeSoundEffect, 1);
+            audioSource.PlayOneShot(successSoundEffect, 0.25f);
+            audioSource.PlayOneShot(holeSoundEffect, 0.25f);
         } else if (col.gameObject.CompareTag("Hole"))
         {
             reachedHole = true; 
@@ -192,12 +196,21 @@ public class GolfBall : MonoBehaviour
 
     IEnumerator ReachedHole()
     {
-        Debug.Log("ReachedHole Called");
         isTurn = false;
-        yield return new WaitForSeconds(1.5f);
+        centerTxtBack.enabled = true;
+        if (putts == 1)
+        {
+            centerText.text = "Hole in One!";
+        } else
+        {
+            centerText.text = "Putts: " + putts;
+        }
+        yield return new WaitForSeconds(3);
+        centerTxtBack.enabled = false;
+        centerText.text = "";
         putts = 0;
         gameObject.SetActive(false);
-        turnManager.GetComponent<TurnManager>().playersFinished++;
+        TurnManager.playersFinished++;
         turnManager.GetComponent<TurnManager>().NextTurn();
     }
 
@@ -208,12 +221,17 @@ public class GolfBall : MonoBehaviour
         {
             endCalled = true;
             isTurn = false;
-            totalPutts += turnManager.GetComponent<TurnManager>().maxPuttPenalty;
-            puttText.text = "Putts: " + (putts + turnManager.GetComponent<TurnManager>().maxPuttPenalty);
-            yield return new WaitForSeconds(1.5f);
+            audioSource.PlayOneShot(failureSoundEffect, 0.25f);
+            totalPutts += TurnManager.maxPuttPenalty;
+            puttText.text = "Putts: " + (putts + TurnManager.maxPuttPenalty);
+            centerTxtBack.enabled = true;
+            centerText.text = "Max Putts Reached     Putts: " + (putts + TurnManager.maxPuttPenalty);
+            yield return new WaitForSeconds(3);
+            centerTxtBack.enabled = false;
+            centerText.text = "";
             putts = 0;
             gameObject.SetActive(false);
-            turnManager.GetComponent<TurnManager>().playersFinished++;
+            TurnManager.playersFinished++;
             turnManager.GetComponent<TurnManager>().NextTurn();
         }
     }
@@ -230,11 +248,11 @@ public class GolfBall : MonoBehaviour
         audioPlaying = false;
     }
 
-    Color HexToColor(string hex)
+    IEnumerator DelayForTime(float delayTime)
     {
-        Color color = new Color();
-        ColorUtility.TryParseHtmlString(hex, out color);
-        return color;
+        delay = true;
+        yield return new WaitForSeconds(delayTime);
+        delay = false;
     }
 }
 

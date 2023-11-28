@@ -4,14 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
 
 public class TurnManager : MonoBehaviour
 {
-    public int playerCount = 4;
-    public int holeStart = 1;
-    public int holeEnd = 1;
-    public int maxPuttPenalty = 4;
-    public int maxPutts = 4;
+    public static int playerCount = 4;
+    public static int holeStart = 1;
+    public static int holeEnd = 18;
+    public static int maxPuttPenalty = 2;
+    public static int maxPutts = 8;
     private int turn = 0;
     public int hole;
     public Tuple<Camera, GameObject>[] cameraPlayerTuples;
@@ -28,6 +29,8 @@ public class TurnManager : MonoBehaviour
     public TextMeshProUGUI fourthPlacePuttTxt;
     public Canvas playerScreen;
     public Canvas scoreboard;
+    public Canvas pauseScreen;
+    public Canvas controlsScreen;
     public Camera endScreenCam;
     public GameObject ball1;
     public GameObject ball2;
@@ -37,15 +40,20 @@ public class TurnManager : MonoBehaviour
     public Camera cam2;
     public Camera cam3;
     public Camera cam4;
-    public int playersFinished = 0;
-    public String[] ballHexColors = {"#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"};
-    public String[] playerNames = {"Player 1", "Player 2", "Player 3", "Player 4"};
+    public static int playersFinished = 0;
+    public static String[] ballHexColors = { "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF" };
+    public static String[] playerNames = { "Player 1", "Player 2", "Player 3", "Player 4" };
+    public AudioClip clickSoundEffect;
+    private AudioSource audioSource;
 
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         endScreenCam.enabled = false;
-        playerScreen.enabled = true;
         scoreboard.enabled = false;
+        pauseScreen.enabled = false;
+        controlsScreen.enabled = false;
+        playerScreen.enabled = true;
         hole = holeStart - 1;
         holeTxt.text = "Hole: " + holeStart;
         DisableNonPlayers();
@@ -61,26 +69,90 @@ public class TurnManager : MonoBehaviour
 
     void Update()
     {
-        // Your update logic here
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        {
+            if (playerScreen.enabled)
+            {
+                playerScreen.enabled = false;
+                pauseScreen.enabled = true;
+                Time.timeScale = 0;
+            } else if (controlsScreen.enabled)
+            {
+                controlsScreen.enabled = false;
+                pauseScreen.enabled = true; 
+
+            } else if (pauseScreen.enabled)
+            {
+                ResumeButton();
+            }
+        }
+    }
+
+    public void ResumeButton()
+    {
+        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+        pauseScreen.enabled = false;
+        playerScreen.enabled = true;
+        Time.timeScale = 1;
+    }
+
+    public void ControlsButton()
+    {
+        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+        controlsScreen.enabled = true;
+        pauseScreen.enabled = false;
+    }
+
+    public void BackButton()
+    {
+        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+        controlsScreen.enabled = false;
+        pauseScreen.enabled = true;
+    }
+
+    public void ResetBallButton()
+    {
+        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+        cameraPlayerTuples[turn - 1].Item2.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().transform.position = holeLocations[hole];
+        ResumeButton();
+    }
+
+    public void ForfeitHoleButton()
+    {
+        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+        cameraPlayerTuples[turn - 1].Item2.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().totalPutts += maxPutts + maxPuttPenalty;
+        playersFinished++;
+        NextTurn();
+        ResumeButton();
+    }
+
+    public void ExitGameButton()
+    {
+        audioSource.PlayOneShot(clickSoundEffect, 0.5f);
+        SceneManager.LoadScene("Menu Scene");
     }
 
     public void FillCameraPlayerTuples()
     {
+
+
         cameraPlayerTuples = new Tuple<Camera, GameObject>[playerCount];
         cameraPlayerTuples[0] = new Tuple<Camera, GameObject>(cam1, ball1);
-        cameraPlayerTuples[0].Item2.GetComponent<GolfBall>().ballColorHex = ballHexColors[0];
+        ball1.GetComponent<Renderer>().material.color = HexToColor(ballHexColors[0]);
 
         if (playerCount == 1) return;
         cameraPlayerTuples[1] = new Tuple<Camera, GameObject>(cam2, ball2);
-        cameraPlayerTuples[1].Item2.GetComponent<GolfBall>().ballColorHex = ballHexColors[1];
+        ball2.GetComponent<Renderer>().material.color = HexToColor(ballHexColors[1]);
 
         if (playerCount == 2) return;
         cameraPlayerTuples[2] = new Tuple<Camera, GameObject>(cam3, ball3);
-        cameraPlayerTuples[2].Item2.GetComponent<GolfBall>().ballColorHex = ballHexColors[2];
+        ball3.GetComponent<Renderer>().material.color = HexToColor(ballHexColors[2]);
 
         if (playerCount == 3) return;
         cameraPlayerTuples[3] = new Tuple<Camera, GameObject>(cam4, ball4);
-        cameraPlayerTuples[3].Item2.GetComponent<GolfBall>().ballColorHex = ballHexColors[3];
+        ball4.GetComponent<Renderer>().material.color = HexToColor(ballHexColors[3]);
     }
 
     public void NextTurn()
@@ -180,28 +252,28 @@ public class TurnManager : MonoBehaviour
 
             if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 0)
             {
-                firstPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
+                firstPlaceNameTxt.text = playerNames[i];
                 firstPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 firstPlaceNameTxt.enabled = true;
                 firstPlacePuttTxt.enabled = true;
 
             } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 1)
             {
-                secondPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
+                secondPlaceNameTxt.text = playerNames[i];
                 secondPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 secondPlaceNameTxt.enabled = true;
                 secondPlacePuttTxt.enabled = true;
 
             } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 2)
             {
-                thirdPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
+                thirdPlaceNameTxt.text = playerNames[i];
                 thirdPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 thirdPlaceNameTxt.enabled = true;
                 thirdPlacePuttTxt.enabled = true;
 
             } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 3)
             {
-                fourthPlaceNameTxt.text = cameraPlayerTuples[i].Item2.name;
+                fourthPlaceNameTxt.text = playerNames[i];
                 fourthPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
                 fourthPlaceNameTxt.enabled = true;
                 fourthPlacePuttTxt.enabled = true;
@@ -212,5 +284,12 @@ public class TurnManager : MonoBehaviour
 
         playerScreen.enabled = false;
         scoreboard.enabled = true;
+    }
+
+    Color HexToColor(string hex)
+    {
+        Color color = new Color();
+        UnityEngine.ColorUtility.TryParseHtmlString(hex, out color);
+        return color;
     }
 }

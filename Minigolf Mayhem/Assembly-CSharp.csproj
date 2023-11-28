@@ -63,6 +63,8 @@
     <Compile Include="Assets\Scripts\Object Mover.cs" />
     <Compile Include="Assets\Scripts\Object Rotator.cs" />
     <Compile Include="Assets\Scripts\Turn Manager.cs" />
+    <Compile Include="Assets\Scripts\Menu.cs" />
+    <Compile Include="Assets\Scripts\Pause.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
