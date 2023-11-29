@@ -46,6 +46,7 @@ public class TurnManager : MonoBehaviour
     public AudioClip clickSoundEffect;
     private AudioSource audioSource;
     private bool paused = false;
+    private bool reset = false;
 
     void Start()
     {
@@ -103,7 +104,8 @@ public class TurnManager : MonoBehaviour
             audioSource.PlayOneShot(clickSoundEffect, 0.5f);
             pauseScreen.enabled = false;
             if (!(turn == playerCount && hole == holeEnd)) playerScreen.enabled = true;
-            cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().isTurn = true;
+            if (reset) NextTurn();
+            else cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().isTurn = true;
             Time.timeScale = 1;
         }
         paused = false;
@@ -156,7 +158,7 @@ public class TurnManager : MonoBehaviour
             cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().totalPutts += maxPutts + maxPuttPenalty - cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().putts;
             cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().putts = 0;
             playersFinished++;
-            NextTurn();
+            reset = true;
             ResumeButton();
         }
     }
