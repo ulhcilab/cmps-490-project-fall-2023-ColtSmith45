@@ -51,7 +51,6 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1;
-        Debug.Log("Start Called, Turn: " + turn);
         AudioSource[] audioSources = GetComponents<AudioSource>();
         audioSource = audioSources[1];
         endScreenCam.enabled = false;
@@ -104,7 +103,11 @@ public class TurnManager : MonoBehaviour
             audioSource.PlayOneShot(clickSoundEffect, 0.5f);
             pauseScreen.enabled = false;
             if (!(turn == playerCount && hole == holeEnd)) playerScreen.enabled = true;
-            if (reset) NextTurn();
+            if (reset)
+            {
+                NextTurn();
+                reset = false;
+            }
             else cameraPlayerTuples[turn - 1].Item2.GetComponent<GolfBall>().isTurn = true;
             Time.timeScale = 1;
         }
@@ -206,7 +209,6 @@ public class TurnManager : MonoBehaviour
             turn += 1;
         }
 
-        Debug.Log("NextTurn Called, Turn: " + turn);
 
         if (playersFinished == playerCount)
         {
@@ -264,8 +266,7 @@ public class TurnManager : MonoBehaviour
     void EndGame()
     {
         endScreenCam.enabled = true;
-        firstPlaceNameTxt.enabled = false;
-        firstPlacePuttTxt.enabled = false;
+
         secondPlaceNameTxt.enabled = false;
         secondPlacePuttTxt.enabled = false;
         thirdPlaceNameTxt.enabled = false;
@@ -282,40 +283,41 @@ public class TurnManager : MonoBehaviour
         Array.Sort(puttScores);
 
 
-
         for (int i = 0; i < playerCount; i++)
         {
-
-            if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 0)
+            for (int j = 0; j < puttScores.Length; j++)
             {
-                firstPlaceNameTxt.text = playerNames[i];
-                firstPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
-                firstPlaceNameTxt.enabled = true;
-                firstPlacePuttTxt.enabled = true;
+                if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[j] && j == 0)
+                {
+                    firstPlaceNameTxt.text = playerNames[i];
+                    firstPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
 
-            } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 1)
-            {
-                secondPlaceNameTxt.text = playerNames[i];
-                secondPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
-                secondPlaceNameTxt.enabled = true;
-                secondPlacePuttTxt.enabled = true;
+                }
+                else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[j] && j == 1)
+                {
+                    secondPlaceNameTxt.text = playerNames[i];
+                    secondPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
+                    secondPlaceNameTxt.enabled = true;
+                    secondPlacePuttTxt.enabled = true;
 
-            } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 2)
-            {
-                thirdPlaceNameTxt.text = playerNames[i];
-                thirdPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
-                thirdPlaceNameTxt.enabled = true;
-                thirdPlacePuttTxt.enabled = true;
+                }
+                else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[j] && j == 2)
+                {
+                    thirdPlaceNameTxt.text = playerNames[i];
+                    thirdPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
+                    thirdPlaceNameTxt.enabled = true;
+                    thirdPlacePuttTxt.enabled = true;
 
-            } else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[i] && i == 3)
-            {
-                fourthPlaceNameTxt.text = playerNames[i];
-                fourthPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
-                fourthPlaceNameTxt.enabled = true;
-                fourthPlacePuttTxt.enabled = true;
+                }
+                else if (cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts == puttScores[j] && j == 3)
+                {
+                    fourthPlaceNameTxt.text = playerNames[i];
+                    fourthPlacePuttTxt.text = cameraPlayerTuples[i].Item2.GetComponent<GolfBall>().totalPutts.ToString();
+                    fourthPlaceNameTxt.enabled = true;
+                    fourthPlacePuttTxt.enabled = true;
 
+                }
             }
-
         }
 
         playerScreen.enabled = false;

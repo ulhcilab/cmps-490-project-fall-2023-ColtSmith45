@@ -22,7 +22,7 @@ public class GolfBall : MonoBehaviour
     public GameObject turnManager;
     public GameObject puttPowerBar;
     private static Image puttPowerBarImg;
-    public GameObject directionArrows;
+    public GameObject directionArrow;
     public bool reachedHole = false;
     public bool endCalled = false;
     public AudioSource audioSource;
@@ -41,7 +41,7 @@ public class GolfBall : MonoBehaviour
         centerTxtBack.enabled = false;
         centerText.text = string.Empty;
         audioSource = GetComponent<AudioSource>();
-        directionArrows.SetActive(false);
+        directionArrow.SetActive(false);
         puttPowerBarImg = puttPowerBar.transform.GetComponent<Image>();
         rb = GetComponent<Rigidbody>();
         SetPuttPowerBarValue(puttPower);
@@ -50,6 +50,7 @@ public class GolfBall : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Decide if ball is moving
         if (isTurn)
         {
 
@@ -67,10 +68,10 @@ public class GolfBall : MonoBehaviour
             {
                 if (putts < TurnManager.maxPutts)
                 {
+                    //Display direction arrow if ball not moving
                     if (!reachedHole)
                     {
-                        //Debug.Log("reached Hole false");
-                        directionArrows.SetActive(true);
+                        directionArrow.SetActive(true);
                     }
 
                     // rotate left
@@ -130,21 +131,21 @@ public class GolfBall : MonoBehaviour
                 }
                 else if (!reachedHole && !ballMoving && !delay)
                 {
-                    directionArrows.SetActive(false);
+                    directionArrow.SetActive(false);
                     StartCoroutine(ReachedMaxPutts());
                 }
 
             //Ball moving and still has putts left 
             } else
             {
-                directionArrows.SetActive(false);
+                directionArrow.SetActive(false);
             }
         }
     }
 
     public static void SetPuttPowerBarValue(float value)
     {
-        float mappedValue = value / maxPuttPower; // Map the value to the [0,1] range
+        float mappedValue = value / maxPuttPower; 
         puttPowerBarImg.fillAmount = mappedValue;
         if (puttPowerBarImg.fillAmount < 0.3f)
         {
@@ -167,15 +168,19 @@ public class GolfBall : MonoBehaviour
 
     void OnTriggerEnter(Collider col)
     {
+        //Ball reached hole entrance, play success and drop sound effect
         if(col.gameObject.CompareTag("Hole Drop"))
         {
             audioSource.PlayOneShot(successSoundEffect, 0.15f);
             audioSource.PlayOneShot(holeSoundEffect, 0.15f);
+
+        //Ball has reached bottom of hole
         } else if (col.gameObject.CompareTag("Hole"))
         {
             reachedHole = true; 
             StartCoroutine(ReachedHole());
         }
+        //Ball out of bounds, reset it
         else if (col.gameObject.CompareTag("Kill Box"))
         {
             Restart();

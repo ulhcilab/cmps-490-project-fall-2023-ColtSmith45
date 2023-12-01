@@ -49,10 +49,11 @@ public class Menu : MonoBehaviour
         Tuple.Create("Orange", "#FFB366"),
         Tuple.Create("Yellow", "#FFFF66"),
         Tuple.Create("Green", "#7FFF7F"),
-        Tuple.Create("Blue", "#7F7FFF"),
+        Tuple.Create("Blue", "#597EE5"),
         Tuple.Create("Purple", "#B366FF"),
         Tuple.Create("Brown", "#8B4513"),
-        Tuple.Create("Gray", "#B3B3B3")
+        Tuple.Create("Gray", "#B3B3B3"),
+        Tuple.Create("Pink", "#FFB3D1")
     };
     private string[] ballHexColors = {"#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"};
     private string[] playerNames = { "Player 1", "Player 2", "Player 3", "Player 4" };
